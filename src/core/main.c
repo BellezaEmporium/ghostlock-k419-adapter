@@ -499,7 +499,9 @@ int run_exploit(int argc, char **argv) {
       if (system("su -c 'id' > /dev/null 2>&1") == 0) {
         pr_success("su ready, fixing SELinux policy\n");
         system("su -c 'load_policy /sys/fs/selinux/policy' > /dev/null 2>&1");
-        pr_success("load_policy done\n");
+        system("su -c '/data/adb/ksu/bin/ksud sepolicy patch \"allow * netlink_route_socket { nlmsg_getlink nlmsg_read create bind getopt setopt }\"' > /dev/null 2>&1");
+        system("su -c 'setenforce 1' > /dev/null 2>&1");
+        pr_success("sepolicy fix done\n");
         break;
       }
       sleep(1);
@@ -570,7 +572,9 @@ int run_exploit(int argc, char **argv) {
     if (system("su -c 'id' > /dev/null 2>&1") == 0) {
       pr_success("su ready, fixing SELinux policy\n");
       system("su -c 'load_policy /sys/fs/selinux/policy' > /dev/null 2>&1");
-      pr_success("load_policy done\n");
+      system("su -c '/data/adb/ksu/bin/ksud sepolicy patch \"allow * netlink_route_socket { nlmsg_getlink nlmsg_read create bind getopt setopt }\"' > /dev/null 2>&1");
+      system("su -c 'setenforce 1' > /dev/null 2>&1");
+      pr_success("sepolicy fix done\n");
       break;
     }
     sleep(1);
