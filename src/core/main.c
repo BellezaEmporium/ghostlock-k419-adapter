@@ -262,41 +262,32 @@ static int check_selinux_off(void) {
 }
 
 static void fix_selinux_policy(void) {
-  int rfd = open("/sys/fs/selinux/policy", O_RDONLY);
-  if (rfd < 0) { pr_info("fix_policy: open read failed errno=%d\n", errno); return; }
-  off_t sz = lseek(rfd, 0, SEEK_END);
-  if (sz <= 0) { close(rfd); return; }
-  lseek(rfd, 0, SEEK_SET);
-  uint8_t *buf = malloc(sz);
-  if (!buf) { close(rfd); return; }
-  ssize_t rd = read(rfd, buf, sz);
-  close(rfd);
-  if (rd != sz) { free(buf); return; }
-
-  if (sz < 20 || buf[0] != 0x8c || buf[1] != 0xff || buf[2] != 0x7c || buf[3] != 0xf9) {
-    pr_info("fix_policy: bad magic\n");
-    free(buf); return;
-  }
-
-  uint32_t id_len;
-  memcpy(&id_len, buf + 4, 4);
-  size_t config_off = 4 + 4 + id_len + 4;
-  if (config_off + 4 > (size_t)sz) { free(buf); return; }
-
-  uint32_t config;
-  memcpy(&config, buf + config_off, 4);
-  uint32_t fixed = config | 0xC0000000U;
-  if (fixed != config) {
-    memcpy(buf + config_off, &fixed, 4);
-    pr_info("fix_policy: config 0x%08x -> 0x%08x (offset 0x%zx)\n", config, fixed, config_off);
-  }
-
-  int wfd = open("/sys/fs/selinux/load", O_WRONLY);
-  if (wfd < 0) { pr_info("fix_policy: open load failed errno=%d\n", errno); free(buf); return; }
-  ssize_t wr = write(wfd, buf, sz);
-  close(wfd);
-  free(buf);
-  pr_info("fix_policy: load %s (%zd/%zd bytes)\n", wr == sz ? "ok" : "FAILED", wr, (ssize_t)sz);
+  static const char fix_script[] =
+    "#!/system/bin/sh\n"
+    "P=/sys/fs/selinux/policy\n"
+    "L=/sys/fs/selinux/load\n"
+    "T=/data/local/tmp/.ghostlock_policy.bin\n"
+    "cp $P $T 2>/dev/null || exit 1\n"
+    "SZ=$(wc -c < $T)\n"
+    "[ \"$SZ\" -gt 20 ] || exit 1\n"
+    "ID_LEN=$(dd if=$T bs=1 skip=4 count=4 2>/dev/null | od -A n -t u4 | tr -d ' ')\n"
+    "CO=$((4 + 4 + ID_LEN + 4))\n"
+    "CFG=$(dd if=$T bs=1 skip=$CO count=4 2>/dev/null | od -A n -t u4 | tr -d ' ')\n"
+    "NEW=$(( CFG | 0xC0000000 ))\n"
+    "if [ \"$NEW\" != \"$CFG\" ]; then\n"
+    "  printf '\\\\x%02x\\\\x%02x\\\\x%02x\\\\x%02x' "
+      "$((NEW & 0xFF)) $(((NEW>>8) & 0xFF)) $(((NEW>>16) & 0xFF)) $(((NEW>>24) & 0xFF))"
+      " | dd of=$T bs=1 seek=$CO conv=notrunc 2>/dev/null\n"
+    "fi\n"
+    "cat $T > $L 2>/dev/null\n"
+    "rm -f $T\n";
+  int sfd = open("/data/local/tmp/.ghostlock_fixpol.sh", O_WRONLY | O_CREAT | O_TRUNC, 0755);
+  if (sfd < 0) { pr_info("fix_policy: write script failed errno=%d\n", errno); return; }
+  write(sfd, fix_script, strlen(fix_script));
+  close(sfd);
+  int ret = system("su -c 'sh /data/local/tmp/.ghostlock_fixpol.sh' 2>/dev/null");
+  unlink("/data/local/tmp/.ghostlock_fixpol.sh");
+  pr_info("fix_policy: script exit=%d\n", ret);
 }
 
 static void slab_drain(void) {
