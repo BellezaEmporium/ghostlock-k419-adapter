@@ -24,13 +24,15 @@ The `pselect6` syscall copies `fd_set` data onto the kernel stack. When combined
 | OnePlus Ace 6T (PLR110) | SM8845 | `6.12.38-...-ab14552068` | **Working** |
 | OnePlus 15 (CPH2749) | SM8850 | `6.12.23-...-ab14541642` | **Working** |
 | Xiaomi 17 (pudding) | SM8850 | `6.12.23-...-abogki463945075` | **Working** |
+| Xiaomi 17 (pudding) | SM8850 | `6.12.69-...-abogki514973465` | **Working** (August 2026 update) |
+| OnePlus 13 (IN2060) | SM8750 | `6.6.89-...-abogki446052083` | **Working** (`PSELECT_SHIFT=-2`) |
+| OPPO Pad 4 Pro | SM8750 | `6.6.89-...-ab14358676` | **Working** (`PSELECT_SHIFT=-2`) |
 
 ### Offsets Extracted (pending device test)
 
 | Device | SoC | Kernel | Notes |
 |--------|-----|--------|-------|
 | OnePlus 15T (PLZ110) | SM8845 | `6.12.38-...-ab14552068` | Same kernel as Ace 6T. QEMU verified SP diff=-64. |
-| OnePlus 13 (IN2060) | SM8750 | `6.6.89-...-abogki446052083` | Kernel 6.6: uses `STRUCT_OFFSETS_6_6`. SP diff=-64. Use `PSELECT_SHIFT=-2`. UMH root available (C ashmem). |
 
 ### Not Feasible (stack layout incompatible)
 
@@ -38,13 +40,16 @@ The pselect stack overlay only works when the freed `rt_mutex_waiter` lands with
 
 | Device | SoC | Kernel | Reason |
 |--------|-----|--------|--------|
-| OPPO Find X9 Ultra | SM8750 | 6.12.58 | SP diff=+32 (vs -64 on Ace 6T). Intermediate caller frame sizes differ due to PGO profiles. SHIFT=-8 required but rb_tree fields land on non-zero `fds` pointers. No safe shift exists. |
-| OPPO Find X7 | — | 6.1.157 | 6.1 compiler output: waiter at word 13 |
-| realme RMX5070 | SM6650 | 6.1.141 | 6.1 compiler output: waiter at word 13 |
+| OPPO Find X9 Ultra | SM8750 | 6.12.58-android16-6 | PGO eliminates `do_futex` frame → SP diff=+32, waiter word=14. No safe shift exists. |
+| OPPO Find X7 | — | 6.1.157 | 6.1 GKI: waiter at word 13 (all 6.1 OPLUS/GKI devices) |
+| realme RMX5070 | SM6650 | 6.1.141 | 6.1 GKI: waiter at word 13 |
 | realme RMX3852 | SM8635 | 6.1.141 | Same 6.1 branch as RMX5070 |
-| OnePlus 13R / Ace 5 | SM8635 | 6.1.x | Same 6.1 branch |
+| OnePlus 13R / Ace 5 | SM8650 | 6.1.x | Same 6.1 branch |
+| OnePlus 12 | SM8650 | 6.1.141 | 6.1 GKI: `do_futex` PGO inlined, waiter word=13/19 |
 | OPPO Pad 5 (OPD2502) | MT6878 | 6.1.134 | Same 6.1 branch |
-| iQOO Z9 5G | — | 5.15.178 | kernel 5.15 uses `plist_node` (not `rb_node`), incompatible waiter struct. Also not an OPLUS device (vivo). |
+| OPPO PKW110 | — | 5.15.180 | `do_futex` frame 0x140 (4.5x normal) → waiter word=-29, unreachable |
+| Motorola Edge 60 Fusion | MT6878 | 6.1.145 | 6.1 GKI: waiter at word 13 (non-OPLUS, same result) |
+| iQOO Z9 5G | — | 5.15.178 | `do_futex` frame too large, waiter unreachable. Not an OPLUS device (vivo). |
 
 ## Exploit Flow
 
@@ -148,8 +153,8 @@ boot.img or the DT. Per-device field in `struct kernel_offsets`; 0 = use the
 | SoC | kernel_phys_load |
 |-----|------------------|
 | SM8845 (Ace 6T, 15T) | `0xa8000000` |
-| SM8750 (OnePlus 13) | `0xa8000000` |
-| SM8850 (OnePlus 15) | `0xc7800000` |
+| SM8750 (OnePlus 13, OPPO Pad 4 Pro) | `0xa8000000` |
+| SM8850 (OnePlus 15, Xiaomi 17) | `0xc7800000` |
 
 **A wrong value fails silently** — the write still lands in mapped RAM, so
 there is no crash and no effect. Don't mistake it for a `PSELECT_SHIFT`
