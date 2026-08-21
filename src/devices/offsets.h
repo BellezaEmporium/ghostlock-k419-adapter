@@ -56,6 +56,15 @@ struct kernel_offsets {
   .task_comm=0x790, .task_tasks=0x4C8, .task_seccomp=0x848, \
   .mm_owner=0x348, .waiter_compact=1
 
+#define STRUCT_OFFSETS_6_1 \
+  .task_prio=0x84, .task_normal_prio=0x8C, .task_sched_task_group=0x340, \
+  .task_pi_lock=0x924, .task_pi_waiters=0x938, \
+  .task_pi_top_task=0x948, .task_pi_blocked_on=0x950, \
+  .task_pid=0x6D8, .task_tgid=0x6DC, .task_real_parent=0x688, \
+  .task_atomic_flags=0x638, .task_real_cred=0x830, .task_cred=0x838, \
+  .task_comm=0x848, .task_tasks=0x678, .task_seccomp=0xAA0, \
+  .mm_owner=0x298, .waiter_compact=1
+
 #define STRUCT_OFFSETS_6_6 \
   .task_prio=0x84, .task_normal_prio=0x8C, .task_sched_task_group=0x348, \
   .task_pi_lock=0x90C, .task_pi_waiters=0x920, \
@@ -74,6 +83,7 @@ static const struct kernel_offsets known_offsets[] = {
 #include "pudding/offsets.h"
 #include "pad4pro/offsets.h"
 #include "cph2521/offsets.h"
+#include "vivot4/offsets.h"
   { .uname_r = NULL }
 };
 
