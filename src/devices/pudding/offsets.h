@@ -2,6 +2,12 @@
  * kernel_phys_load: 0xc7800000 from verified SM8850 (op15/CPH2749, same SoC)
  * SP diff=-64, SHIFT=0 */
 
+/* 6.12.23 entry cross-checked against kallsyms recovered from the exact
+ * boot.img (OS3.0.315.0.WPCCNXM):
+ *   nfulnl_logger=0x023F21B0 (slide does stext = leaked - this; must be exact),
+ *   loggers=0x023F20F0, loggers[0][1]=0x023F20F8,
+ *   security_hook_active_capable_0=0x02674C18,
+ *   ashmem_fops=0x013A4F48 verified 8/8 vtable slots hold fops_* pointers. */
 OFFSETS_ENTRY("6.12.23-android16-5-g75e9b1c7ae7c-abogki463945075-4k",  /* OS3.0.315.0.WPCCNXM */
   .kernel_phys_load=0xc7800000, STRUCT_OFFSETS_6_12,
   .off_init_task=0x023FCF00, .off_init_cred=0x02412A68, .off_init_uts_ns=0x02586C90,
@@ -15,8 +21,8 @@ OFFSETS_ENTRY("6.12.23-android16-5-g75e9b1c7ae7c-abogki463945075-4k",  /* OS3.0.
   .off_ashmem_release=0x00D869DC, .off_ashmem_show_fdinfo=0x00D86EDC,
   .off_configfs_read_iter=0x0051288C, .off_configfs_bin_write_iter=0x00512E38,
   .off_copy_splice_read=0x0048ED94, .off_noop_llseek=0x0043C3D8,
-  .off_cap_capable_active=0,
-  .off_slide_nfulnl_logger=0x023F21A0, .off_slide_loggers_0_1=0x023F20F0,
+  .off_cap_capable_active=0x02674C18,
+  .off_slide_nfulnl_logger=0x023F21B0, .off_slide_loggers_0_1=0x023F20F8,
   .off_slide_boot_id=0x0269B968,
   .off_system_unbound_wq=0x0183D250, .off_call_usermodehelper_exec_work=0x000F6744,
 ),
