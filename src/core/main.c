@@ -476,6 +476,9 @@ int run_exploit(int argc, char **argv) {
 
   kaslr_slide = 0;
   kaslr_base = KIMAGE_TEXT_BASE;
+  if (active_offsets->kimage_text_base) {
+    kaslr_base = active_offsets->kimage_text_base;
+  }
   kaslr_done = 1;
 
   timer_reset();
@@ -672,6 +675,9 @@ static int run_write1_only(void) {
   pin_to_core(CORE);
   kaslr_slide = 0;
   kaslr_base = KIMAGE_TEXT_BASE;
+  if (active_offsets->kimage_text_base) {
+    kaslr_base = active_offsets->kimage_text_base;
+  }
   kaslr_done = 1;
 
   if (check_selinux_off()) {

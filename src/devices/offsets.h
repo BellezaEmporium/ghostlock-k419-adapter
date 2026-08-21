@@ -32,6 +32,8 @@ struct kernel_offsets {
   uint32_t task_pid, task_tgid, task_real_parent, task_atomic_flags;
   uint32_t task_real_cred, task_cred, task_comm, task_tasks, task_seccomp;
   uint32_t mm_owner;
+  uint32_t waiter_compact;
+  uint64_t kimage_text_base;
 };
 
 #define OFFSETS_ENTRY(uname, ...) { .uname_r = uname, __VA_ARGS__ }
@@ -44,6 +46,15 @@ struct kernel_offsets {
   .task_atomic_flags=0x6C8, .task_real_cred=0x8F8, .task_cred=0x900, \
   .task_comm=0x910, .task_tasks=0x638, .task_seccomp=0x9C8, \
   .mm_owner=0x410
+
+#define STRUCT_OFFSETS_5_10 \
+  .task_prio=0x84, .task_normal_prio=0x8C, .task_sched_task_group=0x310, \
+  .task_pi_lock=0x86C, .task_pi_waiters=0x880, \
+  .task_pi_top_task=0x890, .task_pi_blocked_on=0x898, \
+  .task_pid=0x5C8, .task_tgid=0x5CC, .task_real_parent=0x5D8, \
+  .task_atomic_flags=0x590, .task_real_cred=0x778, .task_cred=0x780, \
+  .task_comm=0x790, .task_tasks=0x4C8, .task_seccomp=0x848, \
+  .mm_owner=0x348, .waiter_compact=1
 
 #define STRUCT_OFFSETS_6_6 \
   .task_prio=0x84, .task_normal_prio=0x8C, .task_sched_task_group=0x348, \
@@ -62,6 +73,7 @@ static const struct kernel_offsets known_offsets[] = {
 #include "findx9ultra/offsets.h"
 #include "pudding/offsets.h"
 #include "pad4pro/offsets.h"
+#include "cph2521/offsets.h"
   { .uname_r = NULL }
 };
 
