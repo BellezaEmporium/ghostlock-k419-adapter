@@ -1,0 +1,42 @@
+name: Build GhostLock for 4.19.152-perf+
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Android NDK
+        id: setup-ndk
+        run: |
+          # Download Android NDK r26d
+          wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
+          unzip -q android-ndk-r26d-linux.zip
+          echo "NDK_ROOT=${{ github.workspace }}/android-ndk-r26d" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=${{ github.workspace }}/android-ndk-r26d" >> $GITHUB_ENV
+
+      - name: Build
+        run: |
+          # Build the exploit with our custom target.h for 4.19
+          NDK=${{ env.NDK_ROOT }}
+          CC=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang
+          $CC -O2 -Wall -Wno-unused-parameter -Wno-sign-compare -Wno-unused-function \
+            -Isrc/core -Isrc/devices -DTARGET_CONFIG_H=\"target.h\" \
+            src/core/main.c src/core/util.c src/core/slide.c \
+            src/core/fops.c src/core/pipe_physrw.c src/core/root.c \
+            src/core/miniadb.c src/core/umh_root.c \
+            -o ghostlock -fPIE -pie -pthread
+          ls -la ghostlock
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghostlock-k419
+          path: ghostlock
+          compression-level: 9
