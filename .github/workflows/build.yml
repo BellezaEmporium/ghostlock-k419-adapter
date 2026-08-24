@@ -18,14 +18,22 @@ jobs:
           # Download Android NDK r26d
           wget -q https://dl.google.com/android/repository/android-ndk-r26d-linux.zip
           unzip -q android-ndk-r26d-linux.zip
+          ls -la android-ndk-r26d/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android* 2>/dev/null | head -10
           echo "NDK_ROOT=${{ github.workspace }}/android-ndk-r26d" >> $GITHUB_ENV
           echo "ANDROID_NDK_HOME=${{ github.workspace }}/android-ndk-r26d" >> $GITHUB_ENV
 
       - name: Build
         run: |
-          # Build the exploit with our custom target.h for 4.19
-          NDK=${{ env.NDK_ROOT }}
-          CC=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android35-clang
+          NDK=${{ github.workspace }}/android-ndk-r26d
+          # Try multiple API levels
+          CC=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android34-clang
+          if [ ! -f "$CC" ]; then
+            CC=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android33-clang
+          fi
+          if [ ! -f "$CC" ]; then
+            CC=$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang
+          fi
+          echo "Using CC: $CC"
           $CC -O2 -Wall -Wno-unused-parameter -Wno-sign-compare -Wno-unused-function \
             -Isrc/core -Isrc/devices -DTARGET_CONFIG_H=\"target.h\" \
             src/core/main.c src/core/util.c src/core/slide.c \
