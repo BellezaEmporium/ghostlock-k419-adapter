@@ -2,7 +2,7 @@
 #define TARGET_H
 
 #define BUILD_VARIANT_LABEL "ghostlock_k419"
-#define BUILD_FINGERPRINT "android/ghostlock_k419"
+#define BUILD_FINGERPRINT "oneplus/ghostlock_msm419"
 
 /* Kernel address space — 4.19 arm64 Android (VA_BITS=39) */
 #define KIMAGE_TEXT_BASE 0xffffff8008000000ULL
