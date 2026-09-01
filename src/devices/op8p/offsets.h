@@ -1,4 +1,4 @@
-/* OnePlus 8 Pro msm | Linux-4.19.152-perf+ — Android arm64 kernel
+/* OnePlus 8 Pro msm | Linux-4.19.157-perf+ — Android arm64 kernel
  * KIMAGE_TEXT_BASE=0xffffff8008000000, _text=0xffffff8008080000
  * All offsets are relative to KIMAGE_TEXT_BASE
  * Missing symbols (=0) are resolved via kallsyms_lookup_name at runtime */
