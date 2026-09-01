@@ -85,6 +85,7 @@ static const struct kernel_offsets known_offsets[] = {
 #include "cph2521/offsets.h"
 #include "vivot4/offsets.h"
 #include "k419/offsets.h"
+#include "op8p/offsets.h"
   { .uname_r = NULL }
 };
 
