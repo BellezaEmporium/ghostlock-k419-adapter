@@ -11,7 +11,7 @@
   .task_comm=0x798, .task_tasks=0x4D0, .task_seccomp=0x850, \
   .mm_owner=0x350, .waiter_compact=1
 
-OFFSETS_ENTRY("4.19.152-perf+",
+OFFSETS_ENTRY("4.19.157-perf+",
   .kernel_phys_load=0,
   .kimage_text_base=0xffffff8008000000ULL,
   STRUCT_OFFSETS_4_19,
