@@ -7,7 +7,7 @@
 /* Data work in progress. */
 
 /* Kernel address space — 4.19 arm64 Android (VA_BITS=39) */
-#define KIMAGE_TEXT_BASE 0xFFFFFF8008080000ULL
+#define KIMAGE_TEXT_BASE 0xffffff8008080000ULL
 #define P0_PAGE_OFFSET 0xffffff8000000000ULL
 #define P0_PHYS_OFFSET 0x80000000ULL
 #define P0_KERNEL_PHYS_LOAD 0  /* unknown, resolved at runtime via kallsyms */
